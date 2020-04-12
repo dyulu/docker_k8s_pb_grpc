@@ -1,0 +1,15 @@
+# Start with a ubuntu container
+FROM ubuntu:18.04
+
+# Copy configuration, application files
+ADD ./src /src
+WORKDIR /src
+
+# Install tools for the microservice
+RUN apt-get update
+RUN apt-get install python3-pip -y
+RUN pip3 install --upgrade pip
+RUN pip3 install -r requirements.txt
+
+# Launch
+CMD ["python3", "/src/sedgwick_covid_client.py"]

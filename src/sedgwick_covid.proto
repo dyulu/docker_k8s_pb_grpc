@@ -1,0 +1,25 @@
+// python3 -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. sedgwick_covid.proto
+
+syntax = "proto3";
+
+package sedgwick;
+
+service CovidService {
+    rpc GetNumCasesConfirmed (CovidRequest) returns (CovidReply) {}
+    rpc GetAll (GetAllRequest) returns (stream CovidReply) {}
+    rpc GetTotal (stream CovidRequest) returns (CovidReply) {}
+    rpc GetNumCasesConfirmedForDates (stream CovidRequest) returns (stream CovidReply) {}
+}
+
+message CovidRequest {
+    string date = 1;
+}
+
+message CovidReply {
+    string date = 1;
+    int32 num_cases_confirmed = 2;
+}
+
+message GetAllRequest {
+}
+

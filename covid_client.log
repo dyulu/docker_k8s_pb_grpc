@@ -1,0 +1,6 @@
+2020-04-12 16:33:23,178 covid_channel: localhost:50051
+2020-04-12 16:33:29,613 User entered date 04112020
+2020-04-12 16:33:41,463 User entered date 03312020,04112020
+2020-04-12 16:34:02,410 User entered date 03312020+04112020
+2020-04-12 16:34:05,612 User entered date all
+2020-04-12 16:34:13,929 User did not enter a date, so quitting...
