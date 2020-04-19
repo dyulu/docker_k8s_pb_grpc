@@ -1,0 +1,91 @@
+### apt install python3-pip
+### pip3 install ansible
+### ansible --version
+### ansible-playbook -vvv setup_host.yml
+#  kubeadm reset -f
+
+- hosts: localhost
+  tasks:
+   - name: Update apt-get repo and cache
+     apt: update_cache=yes force_apt_get=yes cache_valid_time=3600
+
+   - name: install software-properties-common
+     apt:
+       name: software-properties-common
+       state: latest
+       update_cache: true
+
+   - name: add Kubernetes apt-key
+     apt_key:
+       url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+       state: present
+
+   - name: add Kubernetes' APT repository
+     apt_repository:
+      repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+      state: present
+      filename: 'kubernetes'
+
+   - name: install docker.io kubeadm kubectl kubelet kubernetes-cni
+     apt:
+       pkg:
+       - docker.io
+       - kubeadm
+       - kubectl
+       - kubelet
+       - kubernetes-cni
+
+   - name: Enable docker service
+     systemd:
+       name: docker
+       enabled: yes
+
+   - name: turn off swap
+     shell: swapoff -a
+
+   - name: initialize the cluster
+     shell: kubeadm init --pod-network-cidr\=10.244.0.0/16
+     args:
+       chdir: $HOME
+       creates: cluster_initialized.txt
+     register: out
+
+   - debug: var=out.stdout_lines
+
+   - name: create .kube directory
+     file:
+       path: $HOME/.kube
+       state: directory
+       mode: 0755
+
+   - name: copy admin.conf to user's kube config
+     copy:
+       src: /etc/kubernetes/admin.conf
+       dest: $HOME/.kube/config
+
+   - name: install Pod network
+     shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+     args:
+       chdir: $HOME
+       creates: pod_network_setup.txt
+     register: out
+
+   - debug: var=out.stdout_lines
+
+   - name: allow scheduling on master since this is one node cluster
+     shell: kubectl taint nodes --all node-role.kubernetes.io/master-
+     register: out
+     ignore_errors: yes
+
+   - debug: var=out.stdout_lines
+
+   - name: install grpc and tools
+     pip:
+       name:
+       - grpcio
+       - grpcio-tools
+
+   - name: install protocol buffer compiler
+     apt:
+       name: protobuf-compiler
+
